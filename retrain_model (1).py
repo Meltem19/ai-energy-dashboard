@@ -20,12 +20,29 @@ df['DayOfWeek'] = df['Timestamp'].dt.dayofweek
 df['IsWeekend'] = df['DayOfWeek'].isin([5, 6]).astype(int)
 df['EnergyConsumption_Lag1'] = df['EnergyConsumption'].shift(1)
 
+# Eksik olabilecek sütunlar için varsayılan değerler ata
+default_numeric_cols = [
+    'SquareFootage', 'Occupancy', 'HVACUsage',
+    'LightingUsage', 'RenewableEnergy', 'Holiday'
+]
+for col in default_numeric_cols:
+    if col not in df.columns:
+        df[col] = 0
+
 # Kategorik verileri sayıya çevir
-df['HVACUsage'] = df['HVACUsage'].map({'Off': 0, 'On': 1})
-df['LightingUsage'] = df['LightingUsage'].map({'Off': 0, 'On': 1})
-df['Holiday'] = df['Holiday'].map({'No': 0, 'Yes': 1})
+if 'HVACUsage' in df.columns:
+    df['HVACUsage'] = df['HVACUsage'].map({'Off': 0, 'On': 1}).fillna(0)
+if 'LightingUsage' in df.columns:
+    df['LightingUsage'] = df['LightingUsage'].map({'Off': 0, 'On': 1}).fillna(0)
+if 'Holiday' in df.columns:
+    df['Holiday'] = df['Holiday'].map({'No': 0, 'Yes': 1}).fillna(0)
 
 df = df.dropna()  # Eksik verileri at
+
+# Veri kümesi boşsa eğitim yapma
+if df.empty:
+    print("Hata: Veri kümesi boş. Model eğitilemedi.")
+    exit()
 
 # Özellik ve hedef tanımı
 features = [
